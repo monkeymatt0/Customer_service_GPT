@@ -13,7 +13,6 @@ type Config struct {
 	DBPassword string
 	DBName     string
 	DBPort     string
-	JWTSecret  string
 	GPTAPIKey  string
 }
 
@@ -29,8 +28,7 @@ func LoadConfig() *Config {
 		DBPassword: getEnv("DB_PASSWORD", "admin"),
 		DBName:     getEnv("DB_NAME", "chatbot"),
 		DBPort:     getEnv("DB_PORT", "5432"),
-		JWTSecret:  getEnv("JWT_SECRET", "your-secret-key"),
-		GPTAPIKey:  getEnv("GPT_API_KEY", "your-gpt-api-key"),
+		GPTAPIKey:  getEnv("GPT_API_KEY", ""),
 	}
 }
 
@@ -39,4 +37,12 @@ func getEnv(key, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+func GetJWTSecret() []byte {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		log.Fatal("JWT_SECRET is not set in the environment")
+	}
+	return []byte(secret)
 }
