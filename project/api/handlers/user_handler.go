@@ -10,10 +10,10 @@ import (
 )
 
 type UserHandler struct {
-	userService *services.UserService
+	userService services.UserServiceInterface
 }
 
-func NewUserHandler(userService *services.UserService) *UserHandler {
+func NewUserHandler(userService services.UserServiceInterface) *UserHandler {
 	return &UserHandler{userService: userService}
 }
 
@@ -60,6 +60,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 		return
 	}
 
+	// Generate JWT
 	token, err := utils.GenerateToken(user.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
