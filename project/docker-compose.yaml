@@ -9,15 +9,19 @@ services:
       POSTGRES_DB: chatbot
     networks:
       - internal-network
+    ports: # This instruction can be deleted when we will use the entire service, since the API will use the internal network
+      - "5432:5432"
+    container_name: db
 
   api:
     build: .
     ports:
-      - "8080:8080"
+      - "8000:8000"
     depends_on:
       - db
     networks:
       - internal-network
+    container_name: api
 
 networks:
   internal-network:

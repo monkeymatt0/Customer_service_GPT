@@ -33,8 +33,8 @@ COPY --from=builder /app/config/config.go .
 # Copy the .env file
 COPY .env .
 
-# Expose port 8080 to the outside world
-EXPOSE 8080
+# Expose port 8000 to the outside world
+EXPOSE 8000
 
 # Command to run the executable
 CMD ["./main"]
