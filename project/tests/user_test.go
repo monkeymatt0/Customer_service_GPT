@@ -3,6 +3,8 @@ package tests
 import (
 	"bytes"
 	"customer_service_gpt/api/handlers"
+	"customer_service_gpt/config"
+	"customer_service_gpt/db"
 	"customer_service_gpt/models"
 	"customer_service_gpt/services"
 	"encoding/json"
@@ -15,12 +17,18 @@ import (
 
 // MockUserService implements services.UserService interface
 type MockUserService struct {
-	createUserFunc     func(*models.User) error
+	// User related functions
+	createUserFunc     func(*models.User) (uint, error)
 	getUserByEmailFunc func(string) (*models.User, error)
-	createSession      func(session *models.UserSession) error
+	deleteUser         func(id uint) error
+
+	// Session related functions
+	createSession func(session *models.UserSession) error
+	deleteSession func(id uint) error
+	getSession    func(id uint) (*models.UserSession, error)
 }
 
-func (m *MockUserService) CreateUser(user *models.User) error {
+func (m *MockUserService) CreateUser(user *models.User) (uint, error) {
 	return m.createUserFunc(user)
 }
 
@@ -32,13 +40,30 @@ func (m *MockUserService) CreateSession(session *models.UserSession) error {
 	return m.createSession(session)
 }
 
+func (m *MockUserService) DeleteUser(id uint) error {
+	return m.deleteUser(id)
+}
+
+func (m *MockUserService) DeleteSession(id uint) error {
+	return m.deleteSession(id)
+}
+
+func (m *MockUserService) GetSession(id uint) (*models.UserSession, error) {
+	return m.getSession(id)
+}
+
 func TestRegister(t *testing.T) {
 	gin.SetMode(gin.TestMode)
+	db.InitDB(config.LoadConfig())
 
 	mockService := &MockUserService{
-		createUserFunc: func(user *models.User) error {
+		createUserFunc: func(user *models.User) (uint, error) {
 			userService := new(services.UserService)
 			return userService.CreateUser(user)
+		},
+		deleteUser: func(id uint) error {
+			userService := new(services.UserService)
+			return userService.DeleteUser(id)
 		},
 	}
 	handler := handlers.NewUserHandler(mockService)
@@ -62,6 +87,7 @@ func TestRegister(t *testing.T) {
 
 func TestLogin(t *testing.T) {
 	gin.SetMode(gin.TestMode)
+	db.InitDB(config.LoadConfig())
 
 	mockService := &MockUserService{
 		getUserByEmailFunc: func(email string) (*models.User, error) {

@@ -30,13 +30,13 @@ func (h *UserHandler) Register(c *gin.Context) {
 		return
 	}
 	user.Password = hashedPassword
-
-	if err := h.userService.CreateUser(&user); err != nil {
+	id, err := h.userService.CreateUser(&user)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "User registered successfully"})
+	c.JSON(http.StatusCreated, gin.H{"message": "User registered successfully", "id": id})
 }
 
 func (h *UserHandler) Login(c *gin.Context) {
@@ -77,4 +77,44 @@ func (h *UserHandler) Login(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"token": token, "user_id": user.ID})
+}
+
+func (h *UserHandler) Logout(c *gin.Context) {
+	var userSessionID struct {
+		UserID uint `json:"userID" binding:"required"`
+	}
+	if err := c.ShouldBindBodyWithJSON(&userSessionID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Id is not sent"})
+		return
+	}
+	_, err := h.userService.GetSession(userSessionID.UserID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Session not found"})
+		return
+	}
+	err2 := h.userService.DeleteSession(userSessionID.UserID)
+	if err2 != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Something went wrong during session deletion"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{})
+}
+
+func (h *UserHandler) UpdateUser(c *gin.Context) {
+	userID := c.Param("id")
+	var userUpdate struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	if err := c.ShouldBindJSON(&userUpdate); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "wrong parameters"})
+		return
+	}
+
+	// @todo : fetch the user
+	// @todo : update the field
+
+	c.JSON(http.StatusOK, gin.H{"user": user})
 }

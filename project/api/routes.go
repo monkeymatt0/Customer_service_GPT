@@ -22,6 +22,8 @@ func SetupRoutes(r *gin.Engine, userService *services.UserService, messageServic
 	api.Use(middlewares.AuthMiddleware())
 	{
 		api.POST("/messages", messageHandler.CreateMessage)
+		api.DELETE("/logout", userHandler.Logout)
+		api.PATCH("/user/:id", userHandler.UpdateUser)
 		// Add other protected routes here
 	}
 }
